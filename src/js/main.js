@@ -527,7 +527,9 @@
 
   /* ── CONTACT FORM (async submit + success state) ── */
   const form = document.getElementById("contact-form");
+  const contactAddr = ["soman", "sreejith"].reverse().join(".") + "@" + "gmail.com";
   if (form) {
+    form.action = "https://formsubmit.co/" + contactAddr; // set at runtime so Cloudflare can't obfuscate it
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const btn = form.querySelector(".form-submit");
@@ -548,7 +550,7 @@
       } catch {
         // Fallback: open mail client with prefilled message
         const fd = new FormData(form);
-        location.href = `mailto:soman.sreejith@gmail.com?subject=${encodeURIComponent(fd.get("_subject") || "Website enquiry")}&body=${encodeURIComponent(`${fd.get("name")} <${fd.get("email")}>\n\n${fd.get("message")}`)}`;
+        location.href = `mailto:${contactAddr}?subject=${encodeURIComponent(fd.get("_subject") || "Website enquiry")}&body=${encodeURIComponent(`${fd.get("name")} <${fd.get("email")}>\n\n${fd.get("message")}`)}`;
         label.textContent = "Send message";
       } finally {
         btn.disabled = false;
