@@ -527,14 +527,36 @@
 
   /* ── CONTACT FORM (async submit + success state) ── */
   const form = document.getElementById("contact-form");
-  const contactAddr = ["soman", "sreejith"].reverse().join(".") + "@" + "gmail.com";
+  const contactAddr = ["soman", "sreejith"].join(".") + "@" + "gmail.com";
   if (form) {
     form.action = "https://formsubmit.co/" + contactAddr; // set at runtime so Cloudflare can't obfuscate it
-    // Native POST — most reliable path; FormSubmit redirects back via _next
-    form.addEventListener("submit", () => {
-      form.querySelector(".form-submit-label").textContent = "Sending…";
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = form.querySelector(".form-submit");
+      const label = form.querySelector(".form-submit-label");
+      label.textContent = "Sending…";
+      btn.disabled = true;
+      try {
+        const res = await fetch("https://formsubmit.co/ajax/" + contactAddr, {
+          method: "POST",
+          headers: { Accept: "application/json" },
+          body: new FormData(form),
+        });
+        const data = await res.json();
+        if (!res.ok || String(data.success) !== "true") throw new Error();
+        label.textContent = "Sent";
+        document.getElementById("form-success").hidden = false;
+        form.querySelectorAll("input, textarea").forEach((f) => (f.value = ""));
+        if (!reducedMotion) gsap.fromTo("#form-success", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" });
+      } catch {
+        // Fallback: native POST — FormSubmit shows its own status page
+        btn.disabled = false;
+        form.submit();
+        return;
+      }
+      btn.disabled = false;
     });
-    // Returning from FormSubmit after successful delivery
+    // Returning from FormSubmit's native flow after successful delivery
     if (new URLSearchParams(location.search).has("sent")) {
       document.getElementById("form-success").hidden = false;
     }
