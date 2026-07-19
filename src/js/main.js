@@ -527,9 +527,9 @@
 
   /* ── CONTACT FORM (async submit + success state) ── */
   const form = document.getElementById("contact-form");
-  const contactAddr = ["soman", "sreejith"].join(".") + "@" + "gmail.com";
+  const FORM_ID = "a3dedd9fd13059605f192d10cfefc2ce"; // FormSubmit alias — hides the real email
   if (form) {
-    form.action = "https://formsubmit.co/" + contactAddr; // set at runtime so Cloudflare can't obfuscate it
+    form.action = "https://formsubmit.co/" + FORM_ID;
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const btn = form.querySelector(".form-submit");
@@ -537,9 +537,10 @@
       label.textContent = "Sending…";
       btn.disabled = true;
       try {
-        const res = await fetch("https://formsubmit.co/ajax/" + contactAddr, {
+        const res = await fetch("https://formsubmit.co/ajax/" + FORM_ID, {
           method: "POST",
           headers: { Accept: "application/json" },
+          referrerPolicy: "unsafe-url", // Cloudflare sets same-origin site-wide; FormSubmit needs the referrer
           body: new FormData(form),
         });
         const data = await res.json();
