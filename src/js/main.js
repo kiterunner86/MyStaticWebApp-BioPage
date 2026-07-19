@@ -530,32 +530,14 @@
   const contactAddr = ["soman", "sreejith"].reverse().join(".") + "@" + "gmail.com";
   if (form) {
     form.action = "https://formsubmit.co/" + contactAddr; // set at runtime so Cloudflare can't obfuscate it
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const btn = form.querySelector(".form-submit");
-      const label = form.querySelector(".form-submit-label");
-      label.textContent = "Sending…";
-      btn.disabled = true;
-      try {
-        const res = await fetch(form.action.replace("formsubmit.co/", "formsubmit.co/ajax/"), {
-          method: "POST",
-          headers: { Accept: "application/json" },
-          body: new FormData(form),
-        });
-        if (!res.ok) throw new Error();
-        label.textContent = "Sent";
-        document.getElementById("form-success").hidden = false;
-        form.querySelectorAll("input, textarea").forEach((f) => (f.value = ""));
-        if (!reducedMotion) gsap.fromTo("#form-success", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" });
-      } catch {
-        // Fallback: open mail client with prefilled message
-        const fd = new FormData(form);
-        location.href = `mailto:${contactAddr}?subject=${encodeURIComponent(fd.get("_subject") || "Website enquiry")}&body=${encodeURIComponent(`${fd.get("name")} <${fd.get("email")}>\n\n${fd.get("message")}`)}`;
-        label.textContent = "Send message";
-      } finally {
-        btn.disabled = false;
-      }
+    // Native POST — most reliable path; FormSubmit redirects back via _next
+    form.addEventListener("submit", () => {
+      form.querySelector(".form-submit-label").textContent = "Sending…";
     });
+    // Returning from FormSubmit after successful delivery
+    if (new URLSearchParams(location.search).has("sent")) {
+      document.getElementById("form-success").hidden = false;
+    }
   }
 
   /* ── REFRESH TRIGGERS AFTER FULL LOAD (images settle layout) ── */
